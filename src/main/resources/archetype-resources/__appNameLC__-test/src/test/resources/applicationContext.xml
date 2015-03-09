@@ -1,0 +1,47 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014 New Zealand Qualifications Authority.
+  ~ All rights reserved.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="${package}.${appNameLC}"/>
+
+    <bean id="firefoxProfile" class="org.openqa.selenium.firefox.FirefoxProfile">
+        <constructor-arg value="file:../core/FirefoxProfiles/WebTestsRegression"/>
+    </bean>
+
+    <bean id="webDriver" class="org.openqa.selenium.support.events.EventFiringWebDriver" destroy-method="quit">
+        <constructor-arg>
+            <bean class="org.openqa.selenium.firefox.FirefoxDriver" destroy-method="quit">
+                <constructor-arg name="profile" ref="firefoxProfile"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="pages" class="net.thucydides.core.pages.Pages">
+        <property name="driver" ref="webDriver"/>
+        <property name="defaultBaseUrl" value="${symbol_dollar}{webdriver.base.url}"/>
+    </bean>
+
+    <!-- Bean def to call through to the Test Support Service  -->
+    <bean id="nsnSteps" class="${package}.webtest.common.jbehave.steps.NsnSteps">
+        <constructor-arg type="net.thucydides.core.pages.Pages" ref="pages"/>
+        <constructor-arg value="${symbol_dollar}{testsupport.server}"/>
+        <constructor-arg value="${symbol_dollar}{testsupport.port}"/>
+    </bean>
+
+    <!-- Project support bean defs -->
+    <bean id="${appNameLC}UserActions" class="${package}.${appNameLC}.steps.${appName}UserActions">
+        <constructor-arg ref="pages"/>
+    </bean>
+    <bean id="organisationDetails" class="${package}.${appNameLC}.domain.OrganisationDetails" />
+
+</beans>
